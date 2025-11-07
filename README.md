@@ -1,4 +1,4 @@
-# CyberPatriot-UltimateScript
+# CyberPatriot-Toolkit
 
 — Aedan Johnson (11th Grade, CyberPatriot Team 2, Windows Pro)
 
