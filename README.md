@@ -34,17 +34,6 @@ It gives you:
     - 3. Antivirus Detector (detects almost any AV and checks Defender)
     - 0. Exit
 
-- **Everything is interactive and beginner-friendly:**
-    - Each step asks you before making major changes (like deleting users)
-    - Check or Remediate modes for system tweaks
-    - Clear, logical subscreens for each task
-
-- **NEW:**  
-    - If a program installer is missing, the script automatically downloads it from the official vendor!
-    - _Logging feature has been removed in the latest update._
-
----
-
 ## How To Use
 
 1. **Download the repo as a zip or clone it:**  
