@@ -4,12 +4,13 @@
 
 ## What is this?
 
-This PowerShell script is my all-in-one for CyberPatriot Windows rounds, but anyone can use it for system hardening, maintenance, or quick setups. **Everything in the script was built by a student competitor, for other students or beginners.**
+This PowerShell script is my all-in-one for CyberPatriot Windows rounds, but anyone can use it for system hardening, maintenance, or quick setups. **Everything in the script was built by a student for real competition needs.**
 
 It gives you:
 - **Menu-based Windows security-hardening:** Easily run CIS and CyberPatriot-required fixes.
 - **Installer menu for security/utilities:** Click and install legit programs
 - **Antivirus detector:** Quickly checks if any AV is running—including Microsoft Defender status.
+- **Auto-downloader for program installers:** If your installer files are missing, the script will try to fetch the latest version automatically from their official website.
 
 ---
 
@@ -26,7 +27,7 @@ It gives you:
 ## Features
 
 - **Runs as Administrator only** (will quit if not)
-- One script—no dependencies (just place program installers in the same folder)
+- One script—no dependencies (just place program installers in the same folder, or let it auto-download!)
 - **Main Menu:**
     - 1. CyberPatriot Security Hardening (CIS recommendations)
     - 2. Program Installer (pick one or all from a categorized menu)
@@ -38,6 +39,10 @@ It gives you:
     - Check or Remediate modes for system tweaks
     - Clear, logical subscreens for each task
 
+- **NEW:**  
+    - If a program installer is missing, the script automatically downloads it from the official vendor!
+    - _Logging feature has been removed in the latest update._
+
 ---
 
 ## How To Use
@@ -45,7 +50,7 @@ It gives you:
 1. **Download the repo as a zip or clone it:**  
    Click green "Code" > Download ZIP or `git clone ...`
 2. **Place all installer `.exe` and `.msi` files you want in the same folder as the script.**  
-   (Match the filenames to those in the script or adjust `$installerMap`.)
+   _Or let the script get them for you—if your files are missing, it will try to auto-download from the internet._
 3. **Right-click on `CyberPatriot-UltimateScript.ps1` and 'Run as Administrator'**
 4. **Follow the menu prompts!**  
    Type numbers/letters to pick actions.
@@ -80,7 +85,7 @@ It gives you:
 
 _Principle: No more hunting for the right sites! Just click and install real tools. Change the list to what your team/coach wants._
 
-(Default programs & their expected file names are in `$installerMap` in the script.)
+(Default programs & their expected file names and download URLs are in `$installerMap` in the script.)
 
 - Malwarebytes
 - Nessus
@@ -108,6 +113,9 @@ _Principle: No more hunting for the right sites! Just click and install real too
 
 ## Changelog (What Changed, When)
 
+**2025-11-10**
+- Added auto-download feature for installer files (downloads from official vendors if missing)
+
 **2025-11-07**
 - Initial version created:
     - Menu-driven script, everything in one file.
@@ -116,14 +124,6 @@ _Principle: No more hunting for the right sites! Just click and install real too
     - Antivirus detection sub-menu (quick scan, full process list with color highlights, Defender check).
     - All CIS/CyberPatriot hardening steps gathered and integrated into submenus.
     - Every menu/option asks and double-checks before any destructive action.
-
-- All features proposed through [this AI-assisted GitHub Copilot session].
-
-**Features roadmap/candidate ideas for the future:**
-- Add logging to .txt file for scoring reports
-- Tutor/explanation system ("What is this option/step?")
-- Auto-download latest program installers (less manual download before rounds)
-- Allow custom scripts/fixes to be dropped into a special folder for menu integration
 
 ---
 
@@ -135,6 +135,6 @@ If you want to change something, just do it—send feedback to your team's next 
 ---
 
 ### Want to contribute or make it better?
+- Message me
 
-- Fork it, open a PR, or message me (Aedan Johnson) or our coach.
-- Beginners and other 11th graders: seriously, try stuff! That's how you learn.
+Beginners and other 11th graders: seriously, try stuff! That's how you learn.
