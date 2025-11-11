@@ -77,8 +77,6 @@ _Principle: No more hunting for the right sites! Just click and install real too
 (Default programs & their expected file names and download URLs are in `$installerMap` in the script.)
 
 - Malwarebytes
-- Nessus
-- Rapid7 Insight Agent
 - Sysinternals Suite (unzipped to C:\Sysinternals)
 - Firefox
 - KeePass
@@ -109,7 +107,7 @@ _Principle: No more hunting for the right sites! Just click and install real too
 - Initial version created:
     - Menu-driven script, everything in one file.
     - Main menu: CyberPatriot tasks, installer, antivirus detector.
-    - Installer sub-menu for Malwarebytes, Nessus, Rapid7, Sysinternals, Firefox, KeePass, WinDirStat, Wireshark, PuTTY, Notepad++, 7-Zip, Admin Templates.
+    - Installer sub-menu for Malwarebytes, Sysinternals, Firefox, KeePass, WinDirStat, Wireshark, PuTTY, Notepad++, 7-Zip, Admin Templates.
     - Antivirus detection sub-menu (quick scan, full process list with color highlights, Defender check).
     - All CIS/CyberPatriot hardening steps gathered and integrated into submenus.
     - Every menu/option asks and double-checks before any destructive action.
