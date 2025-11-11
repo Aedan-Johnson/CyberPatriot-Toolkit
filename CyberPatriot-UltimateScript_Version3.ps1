@@ -3,8 +3,8 @@
     CyberPatriot All-in-One Script — Menu for Windows Hardening, Program Installs, Antivirus Check
 
 .DESCRIPTION
-    By: Aedan Johnson (11th grade, CyberPatriot Team)
-    This menu-driven script lets you:
+    By: Aedan Johnson (11th grade, CyberPatriot Windows Pro - Team 2)
+    This script lets you:
       - Run the most important CyberPatriot fixes (CIS, Windows security stuff)
       - Install legit security tools/utilities through an easy menu
       - Check if any antivirus is running (good for scoring!)
@@ -14,7 +14,7 @@
 
 .NOTES
     Made for school CyberPatriot rounds, but anyone can use!
-    If you have a suggestion for another tool or menu, tell me at practice!
+    If you have a suggestion for another tool or menu, message me!
 #>
 
 function Show-MainMenu {
@@ -48,17 +48,15 @@ function Show-InstallMenu {
     Write-Host "Program Installer Menu"
     Write-Host "--------------------------"
     Write-Host "1. Malwarebytes"
-    Write-Host "2. Nessus"
-    Write-Host "3. Rapid7 Insight"
-    Write-Host "4. Sysinternals Suite"
-    Write-Host "5. Firefox"
-    Write-Host "6. KeePass"
-    Write-Host "7. WinDirStat"
-    Write-Host "8. Wireshark"
-    Write-Host "9. PuTTY"
-    Write-Host "10. Notepad++"
-    Write-Host "11. 7-Zip"
-    Write-Host "12. Admin Templates (.admx)"
+    Write-Host "2. Sysinternals Suite"
+    Write-Host "3. Firefox"
+    Write-Host "4. KeePass"
+    Write-Host "5. WinDirStat"
+    Write-Host "6. Wireshark"
+    Write-Host "7. PuTTY"
+    Write-Host "8. Notepad++"
+    Write-Host "9. 7-Zip"
+    Write-Host "10. Admin Templates (.admx)"
     Write-Host "A. Install ALL of the above"
     Write-Host "0. Return to Main Menu"
     Write-Host "--------------------------"
@@ -88,17 +86,15 @@ function Just-Check { param($ScriptBlock, $Description) try { & $ScriptBlock } c
 # Program installer mapping -- match the file names to what you have!
 $installerMap = @{
     "1"  = @{ Name="Malwarebytes";     File="mbsetup-50010.50010.exe";   Args="/silent" }
-    "2"  = @{ Name="Nessus";           File="Nessus-10.8.3-x64.msi";     Args="/quiet" }
-    "3"  = @{ Name="Rapid7 Insight";   File="Rapid7Setup-Windows64.exe"; Args="/quiet" }
-    "4"  = @{ Name="Sysinternals Suite"; File="SysinternalsSuite.zip";   Args=$null }
-    "5"  = @{ Name="Firefox";          File="Firefox Setup.exe";         Args="/S" }
-    "6"  = @{ Name="KeePass";          File="KeePass-2.xx-setup.exe";    Args="/SILENT" }
-    "7"  = @{ Name="WinDirStat";       File="WinDirStat.exe";            Args="/SILENT" }
-    "8"  = @{ Name="Wireshark";        File="Wireshark.exe";             Args="/S" }
-    "9"  = @{ Name="PuTTY";            File="putty.exe";                 Args=$null }
-    "10" = @{ Name="Notepad++";        File="npp.8.6.0.Installer.exe";   Args="/S" }
-    "11" = @{ Name="7-Zip";            File="7zSetup.exe";               Args="/S" }
-    "12" = @{ Name="Admin Templates";  File="Administrative Templates (.admx) for Windows 11 October 2021 Update.msi"; Args="/quiet" }
+    "2"  = @{ Name="Sysinternals Suite"; File="SysinternalsSuite.zip";   Args=$null }
+    "3"  = @{ Name="Firefox";          File="Firefox Setup.exe";         Args="/S" }
+    "4"  = @{ Name="KeePass";          File="KeePass-2.xx-setup.exe";    Args="/SILENT" }
+    "5"  = @{ Name="WinDirStat";       File="WinDirStat.exe";            Args="/SILENT" }
+    "6"  = @{ Name="Wireshark";        File="Wireshark.exe";             Args="/S" }
+    "7"  = @{ Name="PuTTY";            File="putty.exe";                 Args=$null }
+    "8" = @{ Name="Notepad++";        File="npp.8.6.0.Installer.exe";   Args="/S" }
+    "9" = @{ Name="7-Zip";            File="7zSetup.exe";               Args="/S" }
+    "10" = @{ Name="Admin Templates";  File="Administrative Templates (.admx) for Windows 11 October 2021 Update.msi"; Args="/quiet" }
 }
 function Install-One ($option) {
     $item = $installerMap[$option]
