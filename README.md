@@ -4,13 +4,17 @@
 
 ## What is this?
 
-This PowerShell script is my all-in-one for CyberPatriot Windows rounds, but anyone can use it for system hardening, maintenance, or quick setups. **Everything in the script was built by a student for real competition needs.**
+This PowerShell toolkit is built for ANY CyberPatriot Windows round (not just specific years!), but anyone can use it for system hardening, maintenance, and competition prep.  
+**Everything in the scripts was built by a student for real competition needs and now features universal automation modules for every major scoring category.**
 
 It gives you:
 - **Menu-based Windows security-hardening:** Easily run CIS and CyberPatriot-required fixes.
-- **Installer menu for security/utilities:** Click and install legit programs
-- **Antivirus detector:** Quickly checks if any AV is running—including Microsoft Defender status.
-- **Auto-downloader for program installers:** If your installer files are missing, the script will try to fetch the latest version automatically from their official website.
+- **Universal Auditor for users, groups, services, updates, policies, and more:** Compliance scanning and auto-remediation for the full CyberPatriot vulnerability scope.
+- **Program installer for security/utilities:** Click and install legit programs from a verified list.
+- **Antivirus detector:** Checks and lists all common AV solutions, including Microsoft Defender status.
+- **Auto-downloader for program installers:** Fetches missing installer files from trusted websites.
+- **Scorecard dashboard:** Runs an all-in-one compliance scan to show which scoring items are complete, open, or missing for any round/image.
+- **Exportable forensics and audit logs:** Useful for competition submission and investigation.
 
 ---
 
@@ -18,110 +22,134 @@ It gives you:
 
 - [Features](#features)
 - [How To Use](#how-to-use)
-- [Menu Breakdown (Full Features)](#menu-breakdown-full-features)
-- [Changelog (What Changed, When)](#changelog-what-changed-when)
-- [Why? (Student Perspective)](#why-student-perspective)
+- [Universal Menu Breakdown](#universal-menu-breakdown)
+- [CyberPatriot Vulnerability Checklist](#cyberpatriot-vulnerability-checklist)
+- [Changelog](#changelog)
+- [Why?](#why)
 
 ---
 
 ## Features
 
 - **Runs as Administrator only** (will quit if not)
-- One script—no dependencies (just place program installers in the same folder, or let it auto-download!)
-- **Main Menu:**
-    - 1. CyberPatriot Security Hardening (CIS recommendations)
-    - 2. Program Installer (pick one or all from a categorized menu)
-    - 3. Antivirus Detector (detects almost any AV and checks Defender)
-    - 0. Exit
+- Universal scanning, checks, and fixes—no matter which round or image you get!
+- Compliance dashboard for all scoring items.
+- Easy installer menu for security & utility programs.
+- Detection/removal of prohibited software.
+- Automated log/event export for forensics.
 
 ## How To Use
 
 1. **Download the repo as a zip or clone it:**  
-   Click green "Code" > Download ZIP or `git clone ...`
+   Click green "Code" > Download ZIP or use `git clone ...`
 2. **Place all installer `.exe` and `.msi` files you want in the same folder as the script.**  
-   _Or let the script get them for you—if your files are missing, it will try to auto-download from the internet._
-3. **Right-click on `CyberPatriot-UltimateScript.ps1` and 'Run as Administrator'**
+   _If your files are missing, the script can auto-download them from official sources._
+3. **Right-click on the script (`CyberPatriot-UltimateScript_Version4.ps1`) and 'Run as Administrator'**
 4. **Follow the menu prompts!**  
    Type numbers/letters to pick actions.
 5. **If you want to change what programs are available:**  
-   Just add file references in `$installerMap` (see script or this README).
+   Edit or add entries in `$installerMap` or the software whitelist/blacklist in the script.
 
 ---
 
-## Menu Breakdown (Full Features)
+## Universal Menu Breakdown
 
 **Main Menu**
 ```
-1. Secure/Check System (CyberPatriot Tasks)
-2. Install Security & Utility Programs
-3. Antivirus Software Detector
+1. Audit Users
+2. Audit Group/Admin Membership
+3. Enforce Password/Account Policies
+4. Disable Guest/Default Accounts
+5. Check for Windows Updates
+6. Harden Risky Services
+7. Harden Firewall
+8. Audit Programs (Blacklist)
+9. Audit Listening Network Ports
+10. Enforce Network Sharing/RDP Policy
+11. Export Forensics/Logs
+12. Scorecard Dashboard (Do All)
 0. Exit
 ```
 
-### 1. Secure/Check System (CyberPatriot Tasks)
-- a. Password & Lockout Policy (Enforce or check strong passwords, lockouts)
-- b. Disable Guest Account (no open guest doors)
-- c. Review/Delete Unauthorized Users (shows local accounts, offers delete)
-- d. Search for Music & Game Files (looks for "fun" files to clean)
-- e. List Listening Network Ports (find open ports that shouldn't be open)
-- f. Disable Unneeded Services (turn off risky or CIS-unsanctioned Windows services)
-- g. Disable SMBv1 (close the big old Windows file sharing vuln)
-- h. Configure Firewall & Logging (block inbound, enable logs as needed)
-- z. Run ALL CyberPatriot Fixes (does it all in one go)
-- 0. Back
-
-### 2. Install Security & Utility Programs
-
-_Principle: No more hunting for the right sites! Just click and install real tools. Change the list to what your team/coach wants._
-
-(Default programs & their expected file names and download URLs are in `$installerMap` in the script.)
-
-- Malwarebytes
-- Sysinternals Suite (unzipped to C:\Sysinternals)
-- Firefox
-- KeePass
-- WinDirStat
-- Wireshark
-- PuTTY
-- Notepad++
-- 7-Zip
-- Admin Templates (.admx)
-- "A" = Install all (runs everything available)
-- 0 = Back
-
-### 3. Antivirus Detector
-
-- 1. Quick Antivirus Process Scan (checks for running AV processes)
-- 2. List All Detected Antivirus Processes (shows all process names, highlights AV)
-- 3. Show Microsoft Defender Status (uses Windows cmdlets)
-- 0. Back
+### Audit Features:
+- **User Audit:** Lists all local users, offers removal for unauthorized accounts.
+- **Admin/Group Audit:** Finds and fixes privilege issues; Admin or RDP groups.
+- **Password/Lockout Enforcement:** Minimum password length, history, blank passwords, and lockout settings.
+- **Guest/Default Accounts:** Always disables Guest or other default user accounts (critical for scoring).
+- **Windows Updates:** Checks and installs most updates for full compliance.
+- **Service Hardening:** Disables dangerous or competition-prohibited Windows services (FTP, Telnet, SMBv1, Remote Assistance, etc.).
+- **Firewall:** Enables, configures, and logs Windows Firewall for all network profiles.
+- **Program Audit:** Detects prohibited/risky programs for bulk removal; customizable blacklist.
+- **Port Scanning:** Finds listening/open ports for network security checks.
+- **Network Policy:** Disables anonymous SAM enumeration, enforces secure RDP settings, disables simple sharing.
+- **Forensics Export:** Outputs event logs for investigation or competition forensics.
+- **Scorecard Dashboard:** Runs all checks and prints compliance summary for scoring.
 
 ---
 
-## Changelog (What Changed, When)
+## CyberPatriot Vulnerability Checklist
+
+This toolkit systematically covers every major CyberPatriot Windows vulnerability category, including:
+
+**Account Policies**
+- Enforce password/lockout requirements
+- Detect accounts with blank or weak settings
+
+**Application Security Settings**
+- Audit user/group privileges and risky security options
+
+**Application Updates**
+- Install Windows updates, application auto-update settings
+
+**Defensive Countermeasures**
+- Enable firewall, configure logging
+- Detect antivirus status and real-time protection
+
+**Forensic Questions & Log Export**
+- Export recent Security/Event logs for quick investigation
+
+**Local Policies**
+- Review audit, user rights assignment, security options
+
+**Operating System Updates**
+- Installs most available system updates for compliance
+
+**Policy Violation: Malware/Prohibited Files**
+- Detect and uninstall blacklisted software, games, hacking utilities
+
+**Service Auditing**
+- Bulk enable/disable risky services, with custom lists per round
+
+**Uncategorized Operating System Settings**
+- Apply secure group policy, remote access, sharing, screen lock
+
+**User Auditing**
+- Confirm authorized users/groups unique to the image, and remove extras
+
+---
+
+## Changelog
+
+**2025-11-12**
+- Refactored for UNIVERSAL competition rounds; added dashboard scorecard, audit/export modules, and general compliance automation.
+- Menu split between original and universal toolkits (Version 4 adds round-independent features and checks).
 
 **2025-11-10**
-- Added auto-download feature for installer files (downloads from official vendors if missing)
+- Added auto-download feature for installer files.
 
 **2025-11-07**
-- Initial version created:
-    - Menu-driven script, everything in one file.
-    - Main menu: CyberPatriot tasks, installer, antivirus detector.
-    - Installer sub-menu for Malwarebytes, Sysinternals, Firefox, KeePass, WinDirStat, Wireshark, PuTTY, Notepad++, 7-Zip, Admin Templates.
-    - Antivirus detection sub-menu (quick scan, full process list with color highlights, Defender check).
-    - All CIS/CyberPatriot hardening steps gathered and integrated into submenus.
-    - Every menu/option asks and double-checks before any destructive action.
+- Initial version created; menu-based script, installers, AV detector.
 
 ---
 
-## Why? (Student Perspective)
+## Why?
 
-I made this because at competitions, it wastes tons of time either typing commands or hunting for tools, and sometimes it's easy to forget what CIS wants. This script fixes that.  
-If you want to change something, just do it—send feedback to your team's next member or make a pull request!
+CyberPatriot scoring always comes down to fundamentals: users, services, policies, updates, risky software, firewall, and logging.  
+This toolkit automates everything that recurs *every round*, so you can focus on image investigation, forensics, and speed—no matter what tricks they throw in.
 
 ---
 
 ### Want to contribute or make it better?
-- Message me
 
-Beginners and other 11th graders: seriously, try stuff! That's how you learn.
+- Fork the repo, submit PRs, or message me directly!
+- All students and competition teams welcome. Try new stuff, break things, learn fast.
