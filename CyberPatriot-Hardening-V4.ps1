@@ -1,0 +1,246 @@
+<#
+CyberPatriot Windows 11 Hardening Script
+Menu-driven PowerShell tool mapped to CyberPatriot Vulnerability Categories.
+Run as Administrator.
+#>
+
+function Show-Menu {
+    Clear-Host
+    Write-Host "===== CyberPatriot Hardening Menu (Scoring Categories) =====" -ForegroundColor Cyan
+    Write-Host "1. Account Policies (Passwords, Lockout)"
+    Write-Host "2. Application Security Settings (Critical configs)"
+    Write-Host "3. Application Updates"
+    Write-Host "4. Defensive Countermeasures (Firewall/AV/Encryption)"
+    Write-Host "5. Forensic Questions (Manual review/audit)"
+    Write-Host "6. Local Policies (Rights, Audit, Security Options)"
+    Write-Host "7. Operating System Updates"
+    Write-Host "8. Policy Violation: Malware"
+    Write-Host "9. Policy Violation: Prohibited Files"
+    Write-Host "10. Policy Violation: Unwanted Software"
+    Write-Host "11. Service Auditing"
+    Write-Host "12. Uncategorized OS Settings"
+    Write-Host "13. User Auditing"
+    Write-Host "14. Run ALL Tasks"
+    Write-Host "0. Exit"
+}
+
+function Read-Choice {
+    [int]$choice = Read-Host "Enter your choice (0-14)"
+    if ($choice -ge 0 -and $choice -le 14) { return $choice }
+    Write-Warning "Invalid choice, try again."
+    return $null
+}
+
+# CATEGORY FUNCTIONS BELOW
+
+function Account-Policies {
+    Write-Host "[Account Policies]" -ForegroundColor Green
+    Try {
+        net accounts /minpwlen:10 /maxpwage:60 /minpwage:1 /uniquepw:24
+        net accounts /lockoutthreshold:10 /lockoutduration:30 /lockoutwindow:30
+        Write-Host "Password and lockout policy applied."
+    } Catch {
+        Write-Warning "Could not set password/lockout policy."
+    }
+    Write-Host "Check user accounts: disable Guest, ensure 'User must change password at next logon' (audit below):"
+    Get-LocalUser | Select Name, Enabled, PasswordChangeRequired
+    Write-Host "Review Administrators, Guests, Remote Desktop Users group memberships for authorized accounts only:"
+    Get-LocalGroupMember -Group Administrators
+    Get-LocalGroupMember -Group Guests
+    Get-LocalGroupMember -Group "Remote Desktop Users"
+}
+
+function Application-Security {
+    Write-Host "[Application Security Settings]" -ForegroundColor Green
+    Try {
+        Set-MpPreference -DisableRealtimeMonitoring $false
+        Write-Host "Windows Defender enabled."
+    } Catch {
+        Write-Warning "Could not enable Defender. Check for third-party antivirus."
+    }
+    Try {
+        Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "EnableLUA" 1
+        Write-Host "UAC (User Account Control) enabled."
+    } Catch {
+        Write-Warning "Could not enable UAC."
+    }
+    Write-Host "Check security settings for apps and system:"
+    Write-Host "Review application permissions, app allow/block lists, and UAC settings through Control Panel and Settings if needed."
+}
+
+function Application-Updates {
+    Write-Host "[Application Updates]" -ForegroundColor Green
+    Write-Host "Checking if Windows has pending updates and enabling auto updates..."
+    $pending = (Get-WindowsUpdate -ErrorAction SilentlyContinue)
+    if ($pending) {
+        Write-Host "Pending updates found. Run Windows Update now!"
+    } else {
+        Write-Host "No Windows Updates pending."
+    }
+    Try {
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" -Name AUOptions -Value 4
+        Write-Host "Automatic Windows updates enabled."
+    } Catch {
+        Write-Host "Failed to set automatic updates."
+    }
+    Write-Host "Update all Internet browsers, Java, Adobe, and other apps manually for maximum score."
+}
+
+function Defensive-Countermeasures {
+    Write-Host "[Defensive Countermeasures]" -ForegroundColor Green
+    Try {
+        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
+        Write-Host "Firewall enabled on all profiles."
+    } Catch {
+        Write-Warning "Could not enable Firewall."
+    }
+    Try {
+        Set-MpPreference -DisableRealtimeMonitoring $false
+        Write-Host "Antivirus/Defender enabled."
+    } Catch {}
+    Write-Host "Check for BitLocker disk encryption if required, and verify system protection features."
+}
+
+function Forensic-Questions {
+    Write-Host "[Forensic Questions]" -ForegroundColor Green
+    Write-Host "MANUAL TASK: Review README and answer any Forensic/Evidence questions for competition scoring!"
+    Write-Host "Document findings and remediate as instructed."
+}
+
+function Local-Policies {
+    Write-Host "[Local Policies]" -ForegroundColor Green
+    Try {
+        AuditPol /set /category:* /success:enable /failure:enable
+        AuditPol /set /option:SubcategoryOverride /value:enable
+        Write-Host "Audit policies set to Success & Failure, subcategory override enabled."
+    } Catch {
+        Write-Warning "Failed to set audit policy."
+    }
+    Write-Host "Local Security Policy/User Rights assignment must be reviewed manually (secpol.msc), especially for privilege elevation and network security options."
+}
+
+function OS-Updates {
+    Write-Host "[Operating System Updates]" -ForegroundColor Green
+    Write-Host "Checking for Windows Updates..."
+    $updates = Get-WindowsUpdate -ErrorAction SilentlyContinue
+    if ($updates) {
+        Write-Host "Pending Windows Updates found. Install updates!"
+    } else {
+        Write-Host "No pending updates. Service Packs also should be fully installed."
+    }
+}
+
+function Malware-Violation {
+    Write-Host "[Policy Violation: Malware]" -ForegroundColor Green
+    Write-Host "Audit for backdoors, remote admin tools, keyloggers, password sniffers with Defender and process explorer."
+    Try {
+        Start-MpScan -ScanType FullScan
+        Write-Host "Scanning system for known malware..."
+    } Catch {
+        Write-Warning "Defender scan failed or is unavailable."
+    }
+    Write-Host "Manual: Check installed programs and running processes for hacking tools and remove as found."
+}
+
+function Prohibited-Files {
+    Write-Host "[Policy Violation: Prohibited Files]" -ForegroundColor Green
+    Write-Host "Search for forbidden files (archives, confidential, hacking tools) and remove if found."
+    # Example: search for ZIP, EXE, or forbidden files on Desktop/Documents
+    Get-ChildItem -Path "$env:USERPROFILE\Desktop","$env:USERPROFILE\Documents" -Recurse -Include *.zip,*.rar,*.exe | Select-Object FullName
+    Write-Host "Check README for exact filenames/types to remove!"
+}
+
+function Unwanted-Software {
+    Write-Host "[Policy Violation: Unwanted Software]" -ForegroundColor Green
+    Write-Host "Audit/remove games, scareware, adware, and hacking tools."
+    $unwanted = Get-WmiObject Win32_Product | Where-Object { $_.Name -match 'Game|Hack|Adware|Server|Tool' }
+    $unwanted | Select Name, Version
+    Write-Host "Uninstall any programs above that violate competition image rules."
+}
+
+function Service-Auditing {
+    Write-Host "[Service Auditing]" -ForegroundColor Green
+    $services = @('upnphost','tlntsvr','SNMPTRAP','RemoteRegistry')
+    foreach ($svc in $services) {
+        Try {
+            Set-Service -Name $svc -StartupType Disabled
+            Stop-Service -Name $svc -Force
+            Write-Host "$svc stopped and disabled."
+        } Catch {
+            Write-Warning "$svc not found or could not be disabled."
+        }
+    }
+    Write-Host "Review list of enabled/disabled services in services.msc per CIS/competition rules."
+}
+
+function Uncategorized-OS-Settings {
+    Write-Host "[Uncategorized OS Settings]" -ForegroundColor Green
+    Write-Host "Disable file sharing, check for open file shares, review remote access settings."
+    $allowed = @('ADMIN$','C$','IPC$')
+    $shares = Get-SmbShare | Where-Object { $_.Name -notin $allowed }
+    if ($shares) {
+        Write-Warning "Non-standard shares detected:"
+        $shares | Select Name, Path
+    } else {
+        Write-Host "Only default shares present."
+    }
+    Write-Host "Enable screen lock and screensaver with password."
+    Try {
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveActive" -Value "1"
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaverIsSecure" -Value "1"
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveTimeOut" -Value "600"
+        Write-Host "Screensaver and lock set."
+    } Catch {}
+}
+
+function User-Auditing {
+    Write-Host "[User Auditing]" -ForegroundColor Green
+    Write-Host "List all local users and groups, show disabled/unauthorized accounts."
+    Get-LocalUser | Select Name, Enabled
+    Write-Host "Groups:"
+    Get-LocalGroup | Select Name
+    Write-Host "Ensure only authorized users/groups remain per README."
+}
+
+function Run-All-Tasks {
+    Account-Policies
+    Application-Security
+    Application-Updates
+    Defensive-Countermeasures
+    Forensic-Questions
+    Local-Policies
+    OS-Updates
+    Malware-Violation
+    Prohibited-Files
+    Unwanted-Software
+    Service-Auditing
+    Uncategorized-OS-Settings
+    User-Auditing
+    Write-Host "All categories completed. Review all output, fix manual items, and check README & Score Report before submission!"
+}
+
+# ===== MAIN LOOP =====
+do {
+    Show-Menu
+    $choice = Read-Choice
+    if ($null -eq $choice) { continue }
+    switch ($choice) {
+        1  { Account-Policies }
+        2  { Application-Security }
+        3  { Application-Updates }
+        4  { Defensive-Countermeasures }
+        5  { Forensic-Questions }
+        6  { Local-Policies }
+        7  { OS-Updates }
+        8  { Malware-Violation }
+        9  { Prohibited-Files }
+        10 { Unwanted-Software }
+        11 { Service-Auditing }
+        12 { Uncategorized-OS-Settings }
+        13 { User-Auditing }
+        14 { Run-All-Tasks }
+        0  { Write-Host "Exiting CyberPatriot Hardening Script." -ForegroundColor Cyan; break }
+    }
+    Write-Host "`nPress Enter to return to menu." -ForegroundColor Gray
+    [void](Read-Host)
+} while ($choice -ne 0)

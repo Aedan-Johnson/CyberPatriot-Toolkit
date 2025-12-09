@@ -1,0 +1,269 @@
+<#
+CyberPatriot Score Report Audit Script
+
+This script is designed for **practice environments** or non-official competition images.
+It does not attempt to read or interfere with the official CyberPatriot scoring engine files,
+which are stored in C:\CyberPatriot during real competitions.
+Instead, this script audits key hardening checks and saves a readable summary report (a "score report")
+to your current folder for review and team feedback.
+
+**Do NOT run this script on official competition images with the real CyberPatriot scoring engine.**
+Instead, check your score using the provided Score Report desktop icon, and never alter
+anything inside the C:\CyberPatriot folder.
+
+#>
+
+$CPReport = @()
+
+function Add-CPReport($status, $category, $detail) {
+    $CPReport += "[{0}] {1}: {2}" -f $status, $category, $detail
+}
+
+function Audit-Initial-System-Checks {
+    $cat = "Initial System Checks"
+    try {
+        $apps = Get-WmiObject Win32_Product | Select Name, Version
+        Add-CPReport "OK" $cat "Enumerated installed software"
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to check installed programs"
+    }
+    Add-CPReport "INFO" $cat "Manual check: Outdated browsers, plugins, extra toolbars (Adobe/Java/Edge/Chrome/Firefox) -- COMPETITION NOTE: Score is NOT affected unless specified in the image README."
+}
+
+function Audit-Account-Password-Policy {
+    $cat = "Account & Password Policy"
+    try {
+        $pwPolicy = net accounts
+        if ($pwPolicy -match "minimum password length.*10") {
+            Add-CPReport "OK" $cat "Min password length is 10"
+        } else {
+            Add-CPReport "WARN" $cat "Minimum password length < 10"
+        }
+        if ($pwPolicy -match "password history length.*24") {
+            Add-CPReport "OK" $cat "Password history is 24"
+        } else {
+            Add-CPReport "WARN" $cat "Password history not 24"
+        }
+        if ($pwPolicy -match "maximum password age.*60") {
+            Add-CPReport "OK" $cat "Max password age is 60"
+        } else {
+            Add-CPReport "WARN" $cat "Max password age is not 60"
+        }
+        if ($pwPolicy -match "minimum password age.*1") {
+            Add-CPReport "OK" $cat "Min password age is 1"
+        } else {
+            Add-CPReport "WARN" $cat "Min password age not 1"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to check password policies"
+    }
+    Add-CPReport "INFO" $cat "Manual check for Guest/admin/special account group membership required, must align with README or official guidance."
+}
+
+function Audit-Network-Settings {
+    $cat = "Network Adapter & Registry Settings"
+    try {
+        foreach ($ad in Get-NetAdapter) {
+            $ipv6 = Get-NetAdapterBinding -Name $ad.Name | Where-Object {$_.ComponentID -eq 'ms_tcpip6'}
+            Add-CPReport ($ipv6.Enabled -eq $false ? "OK" : "WARN") $cat "IPv6 Disabled on $($ad.Name): $($ipv6.Enabled -eq $false)"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to enumerate adapters"
+    }
+    try {
+        $upnp = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections' -Name UPnPMode -ErrorAction SilentlyContinue
+        if ($upnp.UPnPMode -eq 2) {
+            Add-CPReport "OK" $cat "Registry UPnPMode set to 2 (disabled)"
+        } else {
+            Add-CPReport "WARN" $cat "UPnPMode not set or not 2"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to check registry UPnPMode"
+    }
+    Add-CPReport "INFO" $cat "Manual DNS/WINS, WiFi Sense, adapter option review required -- These settings do not affect official score directly unless specified."
+}
+
+function Audit-Windows-Services {
+    $cat = "Windows Services"
+    $svcNeeded = @{ "upnphost"="Disabled"; "tlntsvr"="Disabled"; "SNMPTRAP"="Disabled"; "RemoteRegistry"="Disabled"; "Wecsvc"="Automatic" }
+    foreach ($svc in $svcNeeded.Keys) {
+        try {
+            $s = Get-Service -Name $svc -ErrorAction SilentlyContinue
+            if ($s) {
+                Add-CPReport (($s.Status -eq "Stopped" -and $s.StartType -eq $svcNeeded[$svc]) ? "OK" : "WARN") $cat "$svc Status: $($s.Status), StartType: $($s.StartType)"
+            } else {
+                Add-CPReport "INFO" $cat "$svc not installed"
+            }
+        } catch {
+            Add-CPReport "ERROR" $cat "Failed to check $svc"
+        }
+    }
+    Add-CPReport "INFO" $cat "Manual review required for additional services per image README."
+}
+
+function Audit-Windows-Features {
+    $cat = "Windows Features"
+    $featuresToCheck = @(
+        "SMB1Protocol", "TelnetClient", "TelnetServer", "NFS-Services", "IIS-WebServerRole", "IIS-WebServer"
+    )
+    foreach ($f in $featuresToCheck) {
+        try {
+            $feature = Get-WindowsOptionalFeature -Online -FeatureName $f
+            Add-CPReport ($feature.State -eq "Disabled" ? "OK" : "WARN") $cat "$f is $($feature.State)"
+        } catch {
+            Add-CPReport "INFO" $cat "$f not present"
+        }
+    }
+    Add-CPReport "INFO" $cat "Manual review of Control Panel > Windows Features recommended."
+}
+
+function Audit-Shares {
+    $cat = "Shares"
+    $allowed = @('ADMIN$','C$','IPC$')
+    try {
+        $shares = Get-SmbShare | Where-Object {$_.Name -notin $allowed}
+        if ($shares.Count -eq 0) {
+            Add-CPReport "OK" $cat "No unauthorized shares found"
+        } else {
+            foreach ($s in $shares) {
+                Add-CPReport "WARN" $cat "Unauthorized share: $($s.Name)"
+            }
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to audit shares"
+    }
+    Add-CPReport "INFO" $cat "Score may depend on removing unauthorized shares per competition README."
+}
+
+function Audit-Firewall {
+    $cat = "Firewall"
+    try {
+        $fwEnabled = (Get-NetFirewallProfile -Profile Domain,Public,Private | Where-Object {$_.Enabled -eq 'True'}).Count
+        Add-CPReport ($fwEnabled -eq 3 ? "OK" : "WARN") $cat "All profiles enabled"
+    } catch {
+        Add-CPReport "ERROR" $cat "Could not read firewall profiles"
+    }
+    $apps = 'MicrosoftEdge','SearchApp','MSN Money','MSN Sports','MSN News','MSN Weather','Microsoft Photos','Xbox'
+    foreach ($app in $apps) {
+        try {
+            $rule = Get-NetFirewallRule | Where-Object {$_.DisplayName -like "*$app*"}
+            if ($rule.Enabled -eq $false) {
+                Add-CPReport "OK" $cat "$app inbound rule disabled"
+            } else {
+                Add-CPReport "WARN" $cat "$app inbound rule enabled"
+            }
+        } catch {
+            Add-CPReport "INFO" $cat "No inbound rule found for $app"
+        }
+    }
+    Add-CPReport "INFO" $cat "Competition score depends on disabling inbound rules for listed apps, if applicable."
+}
+
+function Audit-UIUX {
+    $cat = "System UI/UX"
+    # AutoPlay
+    try {
+        $autoPlay = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoDriveTypeAutoRun" -ErrorAction SilentlyContinue
+        if ($autoPlay.NoDriveTypeAutoRun -eq 255) {
+            Add-CPReport "OK" $cat "AutoPlay disabled"
+        } else {
+            Add-CPReport "WARN" $cat "AutoPlay may not be disabled"
+        }
+    } catch {
+        Add-CPReport "WARN" $cat "AutoPlay registry setting not found"
+    }
+    # Screensaver password
+    try {
+        $ss = Get-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveActive", "ScreenSaverIsSecure", "ScreenSaveTimeOut"
+        if ($ss.ScreenSaveActive -eq "1" -and $ss.ScreenSaverIsSecure -eq "1" -and $ss.ScreenSaveTimeOut -ge 600) {
+            Add-CPReport "OK" $cat "Screensaver enabled, lock at 10 min"
+        } else {
+            Add-CPReport "WARN" $cat "Screensaver lock not set properly"
+        }
+    } catch {
+        Add-CPReport "WARN" $cat "Screensaver setting not found"
+    }
+    Add-CPReport "INFO" $cat "Manual check for OneDrive Startup/Tile disabling recommended."
+}
+
+function Audit-AuditPolicy {
+    $cat = "Audit Policy"
+    try {
+        $result = AuditPol /get /category:* | Select-String "Success"
+        if ($result.Count -gt 0) {
+            Add-CPReport "OK" $cat "Auditpol: Success/Failure set for at least some categories"
+        } else {
+            Add-CPReport "WARN" $cat "Not all audit categories set for Success/Failure"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed to read audit policy"
+    }
+    Add-CPReport "INFO" $cat "Export full audit policy for manual review if high score is needed."
+}
+
+function Audit-Defender {
+    $cat = "Windows Defender"
+    try {
+        $state = Get-MpComputerStatus
+        if ($state.AntivirusEnabled -eq $true) {
+            Add-CPReport "OK" $cat "Windows Defender is enabled"
+        } else {
+            Add-CPReport "WARN" $cat "Defender not enabled"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Could not check Defender status"
+    }
+    Add-CPReport "INFO" $cat "Official competition images may not allow Defender changes (refer to README)."
+}
+
+function Audit-CISBenchmark {
+    $cat = "CIS Benchmark Registry"
+    try {
+        $lanman = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+        if ($lanman.LmCompatibilityLevel -eq 5) {
+            Add-CPReport "OK" $cat "LmCompatibilityLevel NTLMv2 only"
+        } else {
+            Add-CPReport "WARN" $cat "LmCompatibilityLevel not set to 5"
+        }
+        if ($lanman.RestrictAnonymous -eq 1) {
+            Add-CPReport "OK" $cat "Anonymous access restricted"
+        } else {
+            Add-CPReport "WARN" $cat "Anonymous access NOT restricted"
+        }
+        if ($lanman.NoLMHash -eq 1) {
+            Add-CPReport "OK" $cat "NoLMHash set"
+        } else {
+            Add-CPReport "WARN" $cat "NoLMHash NOT set properly"
+        }
+    } catch {
+        Add-CPReport "ERROR" $cat "Failed CIS registry audit"
+    }
+}
+
+function Save-Score-Report {
+    $file = "CyberPatriotScore-{0}.txt" -f (Get-Date -Format "yyyyMMdd-HHmmss")
+    $path = Join-Path $PSScriptRoot $file
+    $CPReport | Set-Content $path
+    Write-Host "`nCyberPatriot score report saved to $path" -ForegroundColor Cyan
+    Write-Host "NOTE: For official competition, consult your coach for score reporting. This file is for practice/review only." -ForegroundColor Yellow
+}
+
+# Main flow
+Write-Host "CyberPatriot Windows Score Report Audit (Practice Only)" -ForegroundColor Cyan
+Write-Host "This script does NOT interact with real scoring engine files. Run only on practice images or after hardening is complete." -ForegroundColor Yellow
+
+Audit-Initial-System-Checks
+Audit-Account-Password-Policy
+Audit-Network-Settings
+Audit-Windows-Services
+Audit-Windows-Features
+Audit-Shares
+Audit-Firewall
+Audit-UIUX
+Audit-AuditPolicy
+Audit-Defender
+Audit-CISBenchmark
+
+Save-Score-Report
+
+Write-Host "Done."
